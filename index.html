@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ajo — The circle that never breaks</title>
+  <meta name="description" content="ajo digitizes the traditional West African rotating savings circle with identity verification, a shared wallet, and transparent payouts. ALATPay Buildathon MVP." />
+
+  <!-- Google Fonts: Fraunces (variable) + Manrope -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@400..800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =====================================================
+       CSS Custom Properties — Design System
+       ===================================================== */
+    :root {
+      --forest: #0F2E22;
+      --ajo-green: #1C4A37;
+      --leaf: #2F7A56;
+      --mint: #EAF7F0;
+      --paper: #FBFAF6;
+      --gold: #E3A94A;
+      --gold-soft: #F4D9A3;
+      --ink: #10241B;
+      --ink-soft: #4B5F55;
+
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-pill: 999px;
+
+      --shadow-sm: 0 1px 3px rgba(15, 46, 34, 0.06);
+      --shadow-md: 0 4px 16px rgba(15, 46, 34, 0.08);
+      --shadow-lg: 0 12px 40px rgba(15, 46, 34, 0.12);
+      --shadow-xl: 0 20px 60px rgba(15, 46, 34, 0.16);
+
+      --transition-base: 0.3s ease;
+      --transition-slow: 0.7s ease;
+    }
+
+    /* =====================================================
+       Reset & Base
+       ===================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 400;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    a {
+      color: var(--leaf);
+      text-decoration: none;
+      transition: color var(--transition-base);
+    }
+
+    a:hover {
+      color: var(--ajo-green);
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* =====================================================
+       Typography
+       ===================================================== */
+    .font-display {
+      font-family: 'Fraunces', serif;
+      font-weight: 480;
+      font-optical-sizing: auto;
+    }
+
+    .font-display em,
+    .font-display i {
+      font-style: italic;
+      color: var(--leaf);
+    }
+
+    .font-body {
+      font-family: 'Manrope', sans-serif;
+    }
+
+    /* =====================================================
+       Utility Classes
+       ===================================================== */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .pill-gold {
+      background: var(--gold-soft);
+      color: var(--forest);
+    }
+
+    .pill-mint {
+      background: var(--mint);
+      color: var(--ajo-green);
+    }
+
+    .pill-dark {
+      background: var(--forest);
+      color: var(--paper);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: var(--radius-pill);
+      font-family: 'Manrope', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--forest);
+      box-shadow: 0 4px 14px rgba(227, 169, 74, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: #d49a3d;
+      box-shadow: 0 6px 20px rgba(227, 169, 74, 0.45);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--forest);
+      border: 1.5px solid var(--ajo-green);
+    }
+
+    .btn-ghost:hover {
+      background: var(--mint);
+      border-color: var(--leaf);
+    }
+
+    .btn-filled {
+      background: var(--forest);
+      color: var(--paper);
+    }
+
+    .btn-filled:hover {
+      background: var(--ajo-green);
+    }
+
+    /* Section spacing */
+    section {
+      padding: 80px 0;
+    }
+
+    /* Scroll-reveal base */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity var(--transition-slow), transform var(--transition-slow);
+    }
+
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =====================================================
+       Sticky Navigation
+       ===================================================== */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(251, 250, 246, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(15, 46, 34, 0.06);
+      padding: 16px 0;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--forest);
+    }
+
+    .nav-logo-mark {
+      width: 40px;
+      height: 40px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-wordmark {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--forest);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      text-decoration: none;
+      transition: color var(--transition-base);
+    }
+
+    .nav-link:hover {
+      color: var(--forest);
+    }
+
+    .nav-btn {
+      padding: 10px 22px;
+      font-size: 13px;
+    }
+
+    /* =====================================================
+       Hero Section
+       ===================================================== */
+    .hero {
+      padding: 64px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      margin-bottom: 24px;
+    }
+
+    .hero-eyebrow .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--leaf);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero-headline {
+      font-size: clamp(36px, 5vw, 56px);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      color: var(--forest);
+    }
+
+    .hero-subhead {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--ink-soft);
+      max-width: 520px;
+      margin-bottom: 32px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    .meta-item svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--leaf);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================
+       Trust Ring — Signature Visual
+       ===================================================== */
+    .trust-ring-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .trust-ring {
+      position: relative;
+      width: 360px;
+      height: 360px;
+    }
+
+    .trust-ring-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-soft) 0%, rgba(244, 217, 163, 0.4) 60%, transparent 80%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      animation: center-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes center-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(227, 169, 74, 0.2); }
+      50% { box-shadow: 0 0 40px rgba(227, 169, 74, 0.4); }
+    }
+
+    .trust-ring-center-label {
+      font-family: 'Manrope', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ajo-green);
+      margin-bottom: 4px;
+    }
+
+    .trust-ring-center-value {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--forest);
+    }
+
+    .trust-member {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--mint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Manrope', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ajo-green);
+      transform: translate(-50%, -50%);
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .trust-member.active {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(227, 169, 74, 0.2), 0 0 20px rgba(227, 169, 74, 0.25);
+    }
+
+    .trust-orbiter {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 12px rgba(227, 169, 74, 0.5);
+      offset-path: circle(140px at 50% 50%);
+      animation: orbit 8s linear infinite;
+    }
+
+    @keyframes orbit {
+      0% { offset-distance: 0%; }
+      100% { offset-distance: 100%; }
+    }
+
+    /* =====================================================
+       Stat Strip
+       ===================================================== */
+    .stat-strip {
+      background: var(--mint);
+      padding: 32px 0;
+    }
+
+    .stat-strip-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ajo-green);
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .stat-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 32px;
+      background: rgba(47, 122, 86, 0.25);
+    }
+
+    .stat-item strong {
+      display: block;
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+      color: var(--forest);
+    }
+
+    /* =====================================================
+       How It Works
+       ===================================================== */
+    .how-section {
+      background: var(--paper);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--leaf);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.15;
+      color: var(--forest);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .step-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+      position: relative;
+    }
+
+    .step-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .step-num {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 42px;
+      line-height: 1;
+      color: var(--gold);
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .step-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--forest);
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    /* =====================================================
+       Product Walkthrough
+       ===================================================== */
+    .product-section {
+      background: var(--mint);
+    }
+
+    .journey-row {
+      display: grid;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+
+    .journey-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .journey-row:nth-child(odd) {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .journey-row:nth-child(even) {
+      grid-template-columns: 0.9fr 1.1fr;
+    }
+
+    .journey-row:nth-child(even) .journey-image {
+      order: 2;
+    }
+
+    .journey-row:nth-child(even) .journey-text {
+      order: 1;
+    }
+
+    .journey-image {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      background: white;
+    }
+
+    .journey-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .journey-label {
+      display: inline-flex;
+      margin-bottom: 16px;
+    }
+
+    .journey-headline {
+      font-size: clamp(24px, 3vw, 32px);
+      line-height: 1.2;
+      color: var(--forest);
+      margin-bottom: 16px;
+    }
+
+    .journey-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .journey-bullets li {
+      display: flex;
+      gap: 12px;
+      font-size: 15px;
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+
+    .journey-bullets li::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================
+       Download Section
+       ===================================================== */
+    .download-section {
+      padding: 0 0 80px;
+    }
+
+    .download-card {
+      background: var(--forest);
+      border-radius: var(--radius-lg);
+      padding: 64px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .download-card::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(227, 169, 74, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .download-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .download-badge {
+      display: inline-flex;
+      margin-bottom: 20px;
+      background: rgba(234, 247, 240, 0.15);
+      color: var(--gold-soft);
+      border: 1px solid rgba(227, 169, 74, 0.3);
+    }
+
+    .download-title {
+      font-size: clamp(26px, 3.5vw, 36px);
+      line-height: 1.2;
+      color: var(--paper);
+      margin-bottom: 16px;
+    }
+
+    .download-desc {
+      font-size: 15px;
+      color: rgba(251, 250, 246, 0.75);
+      line-height: 1.6;
+      margin-bottom: 28px;
+      max-width: 440px;
+    }
+
+    .download-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .download-pills .pill {
+      background: rgba(234, 247, 240, 0.1);
+      color: var(--mint);
+      border: 1px solid rgba(234, 247, 240, 0.15);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .download-panel {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 40px;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .build-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .download-btn {
+      width: 100%;
+      padding: 18px 32px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .download-note {
+      font-size: 12px;
+      color: rgba(251, 250, 246, 0.55);
+      line-height: 1.5;
+    }
+
+    .download-note a {
+      color: var(--gold-soft);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .download-note a:hover {
+      color: var(--gold);
+    }
+
+    /* =====================================================
+       Footer
+       ===================================================== */
+    .footer {
+      background: var(--forest);
+      padding: 48px 0 32px;
+      border-top: 1px solid rgba(234, 247, 240, 0.08);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo-wordmark {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--paper);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 28px;
+    }
+
+    .footer-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(251, 250, 246, 0.65);
+    }
+
+    .footer-link:hover {
+      color: var(--paper);
+    }
+
+    .footer-fineprint {
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(251, 250, 246, 0.4);
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(234, 247, 240, 0.08);
+    }
+
+    /* =====================================================
+       SVG Icons
+       ===================================================== */
+    .icon-inline {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================
+       Responsive — Mobile
+       ===================================================== */
+    @media (max-width: 768px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .hero-ctas {
+        flex-direction: column;
+      }
+
+      .hero-ctas .btn {
+        width: 100%;
+      }
+
+      .trust-ring {
+        width: 280px;
+        height: 280px;
+      }
+
+      .trust-ring-center {
+        width: 110px;
+        height: 110px;
+      }
+
+      .trust-ring-center-value {
+        font-size: 18px;
+      }
+
+      .trust-member {
+        width: 38px;
+        height: 38px;
+        font-size: 13px;
+      }
+
+      .trust-orbiter {
+        width: 14px;
+        height: 14px;
+        offset-path: circle(110px at 50% 50%);
+      }
+
+      @keyframes orbit {
+        0% { offset-distance: 0%; }
+        100% { offset-distance: 100%; }
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .journey-row,
+      .journey-row:nth-child(odd),
+      .journey-row:nth-child(even) {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .journey-row:nth-child(even) .journey-image,
+      .journey-row:nth-child(even) .journey-text {
+        order: unset;
+      }
+
+      .stat-strip-inner {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .stat-item {
+        padding: 0;
+      }
+
+      .stat-item:not(:last-child)::after {
+        display: none;
+      }
+
+      .download-card {
+        grid-template-columns: 1fr;
+        padding: 40px 28px;
+        gap: 40px;
+      }
+
+      .nav-links {
+        gap: 16px;
+      }
+
+      .nav-link {
+        display: none;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      section {
+        padding: 56px 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .trust-ring {
+        width: 260px;
+        height: 260px;
+      }
+
+      .trust-orbiter {
+        offset-path: circle(100px at 50% 50%);
+      }
+
+      @keyframes orbit {
+        0% { offset-distance: 0%; }
+        100% { offset-distance: 100%; }
+      }
+
+      .hero-meta {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .download-card {
+        padding: 32px 20px;
+      }
+
+      .download-panel {
+        padding: 28px 20px;
+      }
+    }
+
+    /* =====================================================
+       prefers-reduced-motion
+       ===================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       Sticky Navigation
+       ===================================================== -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo" aria-label="ajo home">
+        <svg class="nav-logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <!-- Concentric dashed ring -->
+          <circle cx="20" cy="20" r="16" fill="none" stroke="var(--forest)" stroke-width="2" stroke-dasharray="4 3" />
+          <circle cx="20" cy="20" r="10" fill="none" stroke="var(--ajo-green)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" />
+          <!-- Two solid dots: member + pot -->
+          <circle cx="12" cy="20" r="3" fill="var(--forest)" />
+          <circle cx="28" cy="20" r="2.5" fill="var(--gold)" />
+        </svg>
+        <span class="nav-logo-wordmark">ajo</span>
+      </a>
+      <div class="nav-links">
+        <a href="#how" class="nav-link">How it works</a>
+        <a href="#product" class="nav-link">Product</a>
+        <a href="#download" class="btn btn-filled nav-btn">Download APK</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =====================================================
+       Hero Section
+       ===================================================== -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-content reveal">
+        <div class="hero-eyebrow">
+          <span class="pill pill-mint">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            ALATPay Buildathon &middot; Live MVP build
+          </span>
+        </div>
+        <h1 class="hero-headline font-display">
+          The circle that <em>never breaks.</em>
+        </h1>
+        <p class="hero-subhead">
+          ajo takes the rotating savings circle communities have trusted for generations and adds identity verification, a shared wallet, and a visible payout order.
+        </p>
+        <div class="hero-ctas">
+          <a href="#download" class="btn btn-primary">
+            <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true" style="stroke: currentColor;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download the APK
+          </a>
+          <a href="#how" class="btn btn-ghost">See how it works</a>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Identity-verified members
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Bank-grade encryption
+          </div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+            Powered by ALATPay
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust Ring Signature Visual -->
+      <div class="trust-ring-wrap reveal">
+        <div class="trust-ring" id="trustRing" role="img" aria-label="A rotating circle of 8 member avatars with one active member highlighted in gold and a moving pot indicator. Center shows This cycle 200,000 Naira.">
+          <div class="trust-ring-center">
+            <span class="trust-ring-center-label">This cycle</span>
+            <span class="trust-ring-center-value">&#8358;200,000</span>
+          </div>
+          <!-- Members positioned via JS -->
+          <div class="trust-orbiter" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       Stat Strip
+       ===================================================== -->
+  <div class="stat-strip">
+    <div class="container stat-strip-inner">
+      <div class="stat-item reveal">
+        <strong>Every member verified</strong>
+        BVN, face and bank checks
+      </div>
+      <div class="stat-item reveal">
+        <strong>Automated contributions</strong>
+        Daily, weekly, or monthly
+      </div>
+      <div class="stat-item reveal">
+        <strong>Transparent rotation</strong>
+        Everyone sees the payout order
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       How It Works
+       ===================================================== -->
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">How it works</span>
+        <h2 class="section-title font-display">Four steps to a running circle</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <span class="step-num">01</span>
+          <h3 class="step-title">Verify identity</h3>
+          <p class="step-desc">BVN validation, face capture, and bank account linking. Every member is a real person.</p>
+        </div>
+        <div class="step-card reveal">
+          <span class="step-num">02</span>
+          <h3 class="step-title">Start or join a circle</h3>
+          <p class="step-desc">Create a new savings circle with custom rules, or accept an invite to join one.</p>
+        </div>
+        <div class="step-card reveal">
+          <span class="step-num">03</span>
+          <h3 class="step-title">Make your contribution</h3>
+          <p class="step-desc">Fund your ALATPay wallet and contribute on schedule. PIN-secured every time.</p>
+        </div>
+        <div class="step-card reveal">
+          <span class="step-num">04</span>
+          <h3 class="step-title">Payouts rotate on schedule</h3>
+          <p class="step-desc">Everyone sees the payout order. When it's your turn, the pot hits your account.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       Product Walkthrough
+       ===================================================== -->
+  <section class="product-section" id="product">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">Product walkthrough</span>
+        <h2 class="section-title font-display">From first open to first contribution</h2>
+      </div>
+
+      <!-- Journey 1: Onboarding -->
+      <div class="journey-row reveal">
+        <div class="journey-image">
+          <img src="assets/journey-1-onboarding.png" alt="ajo onboarding screens showing account creation, identity verification with face capture, orientation walkthrough, and the home dashboard" loading="lazy" />
+        </div>
+        <div class="journey-text">
+          <span class="pill pill-gold journey-label">Journey 1 &middot; Onboarding</span>
+          <h3 class="journey-headline font-display">Trust starts before the first contribution.</h3>
+          <ul class="journey-bullets">
+            <li>BVN and face verification make sure every member is a real person with a linked bank account.</li>
+            <li>Clear "what happens after" messaging at each step — no one joins a circle wondering if their money is safe.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Journey 2: Create a Circle -->
+      <div class="journey-row reveal">
+        <div class="journey-image">
+          <img src="assets/journey-2-create-circle.png" alt="ajo circle creation flow showing the create form, circle review screen, and creator dashboard with progress tracking" loading="lazy" />
+        </div>
+        <div class="journey-text">
+          <span class="pill pill-gold journey-label">Journey 2 &middot; Create a circle</span>
+          <h3 class="journey-headline font-display">Set the rules once. The circle enforces them.</h3>
+          <ul class="journey-bullets">
+            <li>Live progress tracking shows who's joined, who's contributed, and who's next in the payout order.</li>
+            <li>Draft-saving lets you plan a circle now and send invites later when you're ready.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Journey 3: Join a Circle -->
+      <div class="journey-row reveal">
+        <div class="journey-image">
+          <img src="assets/journey-3-join-circle.png" alt="ajo invite screen and waiting-for-members screen showing a clear explanation of the circle and real-time member roster" loading="lazy" />
+        </div>
+        <div class="journey-text">
+          <span class="pill pill-gold journey-label">Journey 3 &middot; Join a circle</span>
+          <h3 class="journey-headline font-display">An invite that explains itself.</h3>
+          <ul class="journey-bullets">
+            <li>Funds are held securely in the shared ALATPay wallet until the circle activates — no money moves until everyone is in.</li>
+            <li>Real-time roster updates so you always know who's committed and who's still pending.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Journey 4: Activate the Circle -->
+      <div class="journey-row reveal">
+        <div class="journey-image">
+          <img src="assets/journey-4-activate-circle.png" alt="ajo activation flow showing the activation prompt, contribution review, PIN entry screen, and payment confirmation" loading="lazy" />
+        </div>
+        <div class="journey-text">
+          <span class="pill pill-gold journey-label">Journey 4 &middot; Activate the circle</span>
+          <h3 class="journey-headline font-display">One contribution starts the whole cycle.</h3>
+          <ul class="journey-bullets">
+            <li>Fund your ALATPay wallet directly from your linked bank account — instant and secure.</li>
+            <li>PIN-confirmed payments mean no accidental contributions. You review, you confirm, it goes through.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       Download Section
+       ===================================================== -->
+  <section class="download-section" id="download">
+    <div class="container">
+      <div class="download-card reveal">
+        <div class="download-content">
+          <span class="pill download-badge">Android &middot; Direct install</span>
+          <h2 class="download-title font-display">Try the build.<br>Grade the progress.<br>Tell us what breaks.</h2>
+          <p class="download-desc">
+            This APK is rebuilt throughout the sprint. What's here today will be tighter tomorrow — your feedback is what drives the next commit.
+          </p>
+          <div class="download-pills">
+            <span class="pill">No Play Store needed</span>
+            <span class="pill">~ builds updated daily</span>
+            <span class="pill">Feedback welcome</span>
+          </div>
+        </div>
+        <div class="download-panel">
+          <span class="build-label" id="buildLabel">BUILD v0.4.0 &middot; UPDATED TODAY</span>
+          <a href="#" class="btn btn-primary download-btn" id="downloadBtn">
+            <svg class="icon-inline" viewBox="0 0 24 24" aria-hidden="true" style="stroke: currentColor;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download APK for Android
+          </a>
+          <p class="download-note">
+            You may need to enable <strong>"Install from unknown sources"</strong> in your Android security settings.
+            <br><br>
+            Questions? <a href="#footer">Reach us below</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       Footer
+       ===================================================== -->
+  <footer class="footer" id="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="16" fill="none" stroke="#FBFAF6" stroke-width="2" stroke-dasharray="4 3" />
+          <circle cx="20" cy="20" r="10" fill="none" stroke="#2F7A56" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" />
+          <circle cx="12" cy="20" r="3" fill="#FBFAF6" />
+          <circle cx="28" cy="20" r="2.5" fill="#E3A94A" />
+        </svg>
+        <span class="footer-logo-wordmark">ajo</span>
+      </div>
+      <div class="footer-links">
+        <a href="#how" class="footer-link">How it works</a>
+        <a href="#product" class="footer-link">Product</a>
+        <a href="#download" class="footer-link">Download</a>
+      </div>
+      <p class="footer-fineprint">
+        Built for the ALATPay Buildathon, 2026. ajo is an in-progress MVP &mdash; some flows shown are still being wired up end-to-end.
+      </p>
+    </div>
+  </footer>
+
+  <!-- =====================================================
+       JavaScript
+       ===================================================== -->
+  <script>
+    // ============================================================
+    // BUILD CONFIG — Edit these three values between builds only
+    // ============================================================
+    const APK_URL       = "https://your-storage-link.com/ajo-latest.apk"; // replace each time you ship a new APK
+    const BUILD_VERSION = "v0.4.0";
+    const LAST_UPDATED  = "Updated today";
+
+    // Wire build info into the UI
+    (function initBuildInfo() {
+      const buildLabel = document.getElementById('buildLabel');
+      const downloadBtn = document.getElementById('downloadBtn');
+
+      if (buildLabel) {
+        buildLabel.textContent = 'BUILD ' + BUILD_VERSION + ' \u00B7 ' + LAST_UPDATED.toUpperCase();
+      }
+
+      if (downloadBtn) {
+        downloadBtn.setAttribute('href', APK_URL);
+        downloadBtn.setAttribute('download', 'ajo-' + BUILD_VERSION + '.apk');
+      }
+    })();
+
+    // ============================================================
+    // Trust Ring — Position 8 members evenly around a circle
+    // ============================================================
+    (function initTrustRing() {
+      const ring = document.getElementById('trustRing');
+      if (!ring) return;
+
+      const members = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      const radius = 140; // matches the offset-path circle radius
+      const centerX = 50; // percentage
+      const centerY = 50; // percentage
+
+      members.forEach((letter, i) => {
+        const angle = (i / members.length) * 2 * Math.PI - Math.PI / 2; // start at top
+        const x = centerX + (radius / 180 * 100) * Math.cos(angle);
+        const y = centerY + (radius / 180 * 100) * Math.sin(angle);
+
+        const dot = document.createElement('div');
+        dot.className = 'trust-member' + (i === 0 ? ' active' : '');
+        dot.textContent = letter;
+        dot.style.left = x + '%';
+        dot.style.top = y + '%';
+        dot.setAttribute('aria-hidden', 'true');
+
+        // Insert before the orbiter so z-index layers correctly
+        const orbiter = ring.querySelector('.trust-orbiter');
+        ring.insertBefore(dot, orbiter);
+      });
+    })();
+
+    // ============================================================
+    // Scroll-reveal via IntersectionObserver
+    // ============================================================
+    (function initScrollReveal() {
+      // Respect prefers-reduced-motion: if reduced, show everything immediately
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const reveals = document.querySelectorAll('.reveal');
+
+      if (prefersReduced) {
+        reveals.forEach(function(el) {
+          el.classList.add('revealed');
+        });
+        return;
+      }
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target); // one-time trigger
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.1
+      });
+
+      reveals.forEach(function(el) {
+        observer.observe(el);
+      });
+    })();
+
+    // ============================================================
+    // Smooth scroll for anchor links (fallback for older browsers)
+    // ============================================================
+    (function initSmoothScroll() {
+      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+
+          const target = document.querySelector(targetId);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>
